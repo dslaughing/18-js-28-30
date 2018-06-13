@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+	</head>
+	<body>
+		
+	<style>
+		#email-input{
+			box-sizing: border-box;
+			padding-left:5px;
+			width:250px;
+		}
+		.email-sug{
+			display:none;	
+		}
+		.toshow{
+			display:block;
+		}
+		.email-sug{
+			padding:0;
+			margin:0;
+			border:1px solid gainsboro;
+			width:250px;
+			box-sizing: border-box;
+			overflow: hidden;
+			cursor:default;
+		}
+		.email-sug li{
+			padding-left:5px;
+			display:block;
+			color:#c2c6c1;
+		}
+		.email-sug li:hover{
+			background:skyblue;
+		}
+		.red{
+			background:#ffc5cf;
+		}
+	</style>	
+		
+<div class="wrapper">
+    <input id="email-input" type="text">
+    <ul id="email-sug-wrapper" class="email-sug "></ul>
+</div>
+
+<script>
+	var postfixList = ['163.com', 'gmail.com', '126.com', 'qq.com', '263.net'];
+	var nowSelectTipIndex=0;
+
+
+$=function(el){return document.querySelector(el)};
+
+$("#email-input").focus();
+
+$("#email-input").addEventListener("input",()=>{
+  /*  获取用户输入，生成提示框中的提示内容，将提示内容添加到email-sug-wrapper中
+    控制email-sug-wrapper的显示/隐藏状态*/
+   addContent();
+   showOrHide();
+},false) ; 
+
+$("#email-sug-wrapper").addEventListener("click",(e)=>{
+	$("#email-input").value=e.target.innerText;
+	Hide();
+	resetSelected();
+	$("#email-input").focus();
+},false);
+
+$("#email-input").addEventListener("keydown",(e)=>{
+	setTimeout(()=>{
+		switch(e.keyCode){
+		case 38:
+		if(nowSelectTipIndex==0){
+			nowSelectTipIndex=$("#email-sug-wrapper").children.length-1
+		}else{
+			nowSelectTipIndex--;
+		}
+		break;
+		
+		case 40:
+		if(nowSelectTipIndex==$("#email-sug-wrapper").children.length-1){
+			nowSelectTipIndex=0
+		}else{
+			nowSelectTipIndex++;
+		}
+		break;
+		
+		case 13:
+		$("#email-input").value=$("#email-sug-wrapper").children[nowSelectTipIndex].innerText;
+		Hide();
+		resetSelected();
+		break;
+		
+		case 27:
+		$("#email-input").select();
+		
+	}
+	addContent();
+
+   	},0)
+
+	}
+,false);
+
+function htmlEncodeByRegExp(text){ 
+
+// 1.首先动态创建一个容器标签元素，如DIV
+            var temp = document.createElement("div");
+            //2.然后将要转换的字符串设置为这个元素的innerHTML(ie，火狐，google都支持)
+            temp.innerHTML = text;
+            //3.最后返回这个元素的innerText(ie支持)或者textContent(火狐，google支持)，即得到经过HTML解码的字符串了。
+            var output = temp.innerText || temp.textContent;
+            temp = null;
+            return output;
+}
+function getInput() {
+//  拿到input输入框的输入内容trim后返回    
+	var data=[];
+	var oriInput=$("#email-input").value,input,index=oriInput.indexOf("@");
+	oriInput=htmlEncodeByRegExp(oriInput);
+
+	if(index==-1){
+		data.push(oriInput);
+	}else{
+		data.push(oriInput.slice(0,index).replace(/(^\s*)|(\s*$)/g,""));
+		data.push(oriInput.slice(index+1).replace(/(^\s*)|(\s*$)/g,""));
+	}
+	return data;
+}
+
+function createContent() {
+//  获取用户输入
+//  遍历postfixList {
+//  	
+//      把用户输入和每一个postfix进行结合成为每一个Li
+//  }
+//  
+//  返回生成的提示内容
+	var input=getInput();
+	var result= postfixList.map(function(item){
+		if(input.length==1){
+		return "<li>"+input+"@"+item+"</li>"			
+		}
+		else{
+			var pattern=new RegExp(input[1]);
+			if(pattern.test(item)){
+				return "<li>"+input[0]+"@"+item+"</li>"
+			}else{
+				return "";
+			}	
+		}
+	}).join("");
+	if(!result){
+		result=postfixList.map(function(item){return "<li>"+input[0]+"@"+item+"</li>"}).join("");
+	}
+	return result;
+}
+
+function addContent() {
+//  获取生成提示框中的提示内容
+//  将内容添加到email-sug-wrapper中
+    $("#email-sug-wrapper").innerHTML=createContent();
+    for(var i=0;i<$("#email-sug-wrapper").children.length;i++){
+    	if(i==nowSelectTipIndex){
+    	$("#email-sug-wrapper").children[i].classList.add("red");   		
+    	}
+    	else{
+    		$("#email-sug-wrapper").children[i].classList.remove("red");  
+    	}
+    }
+
+}
+
+function resetSelected(){nowSelectTipIndex=0}
+
+function showOrHide() {
+//  if 用户输入为空 {
+//      隐藏提示框
+//  } else {
+//      显示提示框
+//  }
+	if(!$("#email-input").value){
+		Hide();
+	}else{
+		Show();
+	}
+}
+function Hide() {
+//  做具体隐藏提示框的操作
+	$("#email-sug-wrapper").classList.remove("toshow");
+}
+
+function Show() {
+//  做具体显示提示框的操作
+	$("#email-sug-wrapper").classList.add("toshow");
+}
+
+</script>
+	</body>
+</html>
+
